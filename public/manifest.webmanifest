@@ -1,0 +1,10 @@
+{
+  "name": "Lark — a couples adventure",
+  "short_name": "Lark",
+  "description": "Explore a 3D city together. Reunite, or race the clock to find landmarks.",
+  "start_url": ".",
+  "display": "standalone",
+  "orientation": "any",
+  "background_color": "#cfe0ee",
+  "theme_color": "#3a7ca5"
+}

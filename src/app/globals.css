@@ -1,0 +1,107 @@
+:root {
+  --panel: rgba(255, 255, 255, 0.82);
+  --ink: #22303a;
+  --blue: #3a7ca5;
+  --pink: #e5568a;
+  --amber: #e59324;
+}
+* { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+html, body { height: 100%; overflow: hidden; background: #cfe0ee; color: var(--ink);
+  font-family: "Segoe UI", system-ui, -apple-system, Roboto, Helvetica, Arial, sans-serif;
+  user-select: none; -webkit-user-select: none; }
+button { font-family: inherit; cursor: pointer; border: none; }
+canvas { display: block; touch-action: none; }
+
+/* ---------- shared ---------- */
+.row { display: flex; gap: 10px; flex-wrap: wrap; }
+.muted { opacity: 0.65; font-size: 12px; }
+.warn { color: #b0480f; font-size: 12px; margin-top: 10px; background: #ffe9d6; padding: 8px 10px; border-radius: 9px; }
+.big-btn { color: #fff; background: var(--blue); border-radius: 14px; padding: 14px 18px; font-size: 16px;
+  font-weight: 700; display: flex; flex-direction: column; align-items: center; line-height: 1.15; transition: transform .08s; }
+.big-btn small { font-weight: 500; opacity: .85; font-size: 11px; margin-top: 3px; }
+.big-btn:active { transform: scale(.96); }
+.big-btn.blue { background: var(--blue); }
+.big-btn.amber { background: var(--amber); }
+.big-btn.ghost { background: rgba(60,90,110,.16); color: var(--ink); }
+.big-btn.wide { width: 100%; }
+
+/* ---------- lobby ---------- */
+.lobby { height: 100%; display: flex; align-items: center; justify-content: center; padding: 18px;
+  background: radial-gradient(120% 120% at 50% 0%, #dfeaf4 0%, #bcd2e6 55%, #a7c0da 100%); }
+.lobby-card { background: var(--panel); backdrop-filter: blur(10px); border-radius: 22px; padding: 26px 22px;
+  width: min(420px, 94vw); box-shadow: 0 18px 50px rgba(20,40,60,.22); }
+.lobby-card h1 { font-size: 30px; letter-spacing: .5px; }
+.lobby-card h1 span { font-size: 20px; }
+.lobby-card .tag { opacity: .72; font-size: 13px; margin: 6px 0 18px; line-height: 1.4; }
+.lobby-card label { display: block; font-size: 12px; font-weight: 700; opacity: .6; margin: 14px 0 5px; text-transform: uppercase; letter-spacing: .4px; }
+.lobby-card input { width: 100%; padding: 12px 14px; font-size: 16px; border: 2px solid #d7dfe6; border-radius: 12px; background: #fff; }
+.lobby-card input:focus { outline: none; border-color: var(--blue); }
+.swatches { display: flex; gap: 8px; }
+.sw { width: 34px; height: 34px; border-radius: 50%; border: 3px solid transparent; }
+.sw.sel { border-color: #22303a; }
+.hint { font-size: 12px; opacity: .6; margin-top: 12px; }
+.credit { font-size: 10px; opacity: .45; margin-top: 14px; }
+.row { margin-top: 16px; }
+
+/* ---------- game ---------- */
+.game-root { position: fixed; inset: 0; }
+.loader { position: fixed; inset: 0; display: flex; align-items: center; justify-content: center;
+  background: #cfe0ee; font-weight: 600; color: #3a5a6a; z-index: 40; }
+
+.hud { position: fixed; z-index: 20; }
+.panelish, .top-left, .top-right, .rush-bar, .start-panel { background: var(--panel); backdrop-filter: blur(8px);
+  border-radius: 14px; box-shadow: 0 8px 24px rgba(20,40,60,.16); }
+.top-left { top: 12px; left: 12px; padding: 8px 10px; display: flex; align-items: center; gap: 8px; }
+.top-right { top: 12px; right: 12px; padding: 8px 10px; display: flex; align-items: center; gap: 8px; }
+.code { background: rgba(58,124,165,.14); color: var(--ink); font-weight: 800; letter-spacing: 2px;
+  padding: 6px 10px; border-radius: 9px; font-size: 15px; }
+.dot { width: 9px; height: 9px; border-radius: 50%; display: inline-block; }
+.dot.on { background: #46c46a; box-shadow: 0 0 6px #46c46a; }
+.dot.off { background: #d05050; }
+.modelabel { font-weight: 700; font-size: 13px; }
+.mini { background: rgba(60,90,110,.16); color: var(--ink); border-radius: 9px; padding: 6px 10px; font-size: 12px; font-weight: 600; }
+
+.start-panel { bottom: 26px; left: 50%; transform: translateX(-50%); padding: 16px 18px; width: min(440px, 94vw); text-align: center; }
+.start-panel h3 { font-size: 17px; }
+.start-panel .row { justify-content: center; }
+.start-panel .big-btn { flex: 1; min-width: 150px; }
+
+.rush-bar { top: 60px; left: 50%; transform: translateX(-50%); padding: 8px 12px; width: min(560px, 96vw); text-align: center; }
+.timer { font-size: 26px; font-weight: 800; letter-spacing: 1px; }
+.timer.danger { color: #d0402f; }
+.found { font-size: 12px; opacity: .7; margin-bottom: 4px; }
+.chips { display: flex; flex-wrap: wrap; gap: 5px; justify-content: center; }
+.chip { font-size: 11px; padding: 4px 8px; border-radius: 20px; background: rgba(60,90,110,.12); }
+.chip.got { background: #d6f0d9; color: #1f7d3a; font-weight: 700; }
+
+.attrib { position: fixed; bottom: 5px; right: 8px; font-size: 10px; opacity: .6; z-index: 20; }
+
+/* joystick */
+.stick { position: fixed; left: 24px; bottom: 90px; width: 120px; height: 120px; border-radius: 50%;
+  background: rgba(255,255,255,.26); border: 2px solid rgba(255,255,255,.6); z-index: 25; touch-action: none; }
+.nub { position: absolute; left: 50%; top: 50%; width: 52px; height: 52px; margin: -26px 0 0 -26px; border-radius: 50%;
+  background: rgba(58,124,165,.85); box-shadow: 0 4px 14px rgba(0,0,0,.25); }
+
+/* compass */
+.compass { position: fixed; bottom: 26px; left: 50%; transform: translateX(-50%); z-index: 22;
+  background: var(--panel); backdrop-filter: blur(8px); border-radius: 16px; padding: 12px 16px;
+  display: flex; align-items: center; gap: 14px; box-shadow: 0 8px 24px rgba(20,40,60,.16); }
+.dial { width: 66px; height: 66px; border-radius: 50%; display: flex; align-items: center; justify-content: center;
+  border: 3px solid #cfd8de; }
+.dial.warm { border-color: #ef7a4f; box-shadow: 0 0 14px rgba(239,122,79,.6); }
+.dial.mid { border-color: #f0b24d; }
+.dial.cold { border-color: #6fa8d6; }
+.arrow { font-size: 30px; color: var(--pink); }
+.cinfo { display: flex; flex-direction: column; }
+.cinfo strong { font-size: 24px; }
+.cinfo span { font-size: 12px; opacity: .7; }
+
+/* overlays */
+.overlay { position: fixed; inset: 0; z-index: 30; display: flex; align-items: center; justify-content: center;
+  background: rgba(20,35,50,.42); backdrop-filter: blur(3px); }
+.card.big { background: #fff; border-radius: 22px; padding: 28px 26px; text-align: center; width: min(400px, 92vw);
+  box-shadow: 0 20px 60px rgba(0,0,0,.3); }
+.card.big .huge { font-size: 60px; }
+.card.big h2 { font-size: 24px; margin: 6px 0; }
+.card.big p { opacity: .72; font-size: 14px; margin-bottom: 16px; }
+.card.big .row { justify-content: center; }
