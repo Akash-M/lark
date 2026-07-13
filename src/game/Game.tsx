@@ -11,11 +11,13 @@ import type { City } from '@/lib/types';
 import { CityView } from './City';
 import { Player } from './Player';
 import { RemotePlayers } from './RemotePlayers';
-import { Landmarks } from './Landmarks';
+import { Landmarks, type Spot } from './Landmarks';
 import { Collider } from './collision';
 import { Joystick } from '@/ui/Joystick';
 import { HUD } from '@/ui/HUD';
 import { Compass } from '@/ui/Compass';
+import { Minimap } from '@/ui/Minimap';
+import { Controls } from '@/ui/Controls';
 
 export default function Game() {
   const router = useRouter();
@@ -28,6 +30,15 @@ export default function Game() {
   const [spawnAt, setSpawnAt] = useState({ x: 0, z: 20 });
 
   const collider = useMemo(() => (city ? new Collider(city) : null), [city]);
+
+  // landmark collectibles placed on reachable ground (shared by 3D + minimap + guide)
+  const spots = useMemo<Spot[]>(() => {
+    if (!city) return [];
+    return city.landmarks.map((lm) => {
+      const [x, z] = collider ? collider.findOpen(lm.x, lm.z) : [lm.x, lm.z];
+      return { id: lm.id, name: lm.name, x, z };
+    });
+  }, [city, collider]);
 
   useEffect(() => { if (!name) router.replace('/'); }, [name, router]);
 
@@ -42,10 +53,7 @@ export default function Game() {
     if (mode === 'reunite') base = spawn(160);
     else if (mode === 'rush') base = spawn(30, 0, 30);
     else base = { x: 0, z: 20 };
-    if (collider) {
-      const [x, z] = collider.findOpen(base.x, base.z);
-      base = { x, z };
-    }
+    if (collider) { const [x, z] = collider.findOpen(base.x, base.z); base = { x, z }; }
     setSpawnAt(base);
   }, [mode, seed, collider]);
 
@@ -56,12 +64,12 @@ export default function Game() {
       <Canvas
         shadows
         dpr={[1, 2]}
-        camera={{ fov: 60, near: 0.5, far: 3000, position: [0, 12, 24] }}
+        camera={{ fov: 60, near: 0.5, far: 3000, position: [0, 14, 26] }}
         gl={{ antialias: true }}
         onCreated={({ gl }) => { gl.toneMapping = THREE.ACESFilmicToneMapping; gl.toneMappingExposure = 1.05; }}
       >
         <color attach="background" args={['#cfe0ee']} />
-        <fog attach="fog" args={['#cfe0ee', 130, 520]} />
+        <fog attach="fog" args={['#cfe0ee', 150, 620]} />
         <hemisphereLight args={['#bfd8ff', '#6b5c48', 0.85]} />
         <ambientLight intensity={0.15} />
         <directionalLight
@@ -83,13 +91,15 @@ export default function Game() {
         {city && <CityView city={city} />}
         <Player sendPos={sendPos} spawnAt={spawnAt} collider={collider} />
         <RemotePlayers />
-        {city && <Landmarks city={city} sendGame={sendGame} collider={collider} />}
+        {city && <Landmarks spots={spots} sendGame={sendGame} />}
       </Canvas>
 
       {!city && <div className="loader">Loading {cityId}…</div>}
       <Joystick />
+      <Controls />
+      {city && <Minimap city={city} spots={spots} />}
       {city && <HUD city={city} sendGame={sendGame} />}
-      <Compass sendGame={sendGame} />
+      <Compass sendGame={sendGame} spots={spots} />
     </div>
   );
 }

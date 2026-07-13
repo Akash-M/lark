@@ -3,36 +3,49 @@ import { useEffect, useState } from 'react';
 import { useGame } from '@/lib/useGameStore';
 import { localPos } from '@/lib/localState';
 import type { GameMsg } from '@/lib/types';
+import type { Spot } from '@/game/Landmarks';
 
-/** Reunite-mode helper: an arrow + distance readout pointing to the nearest
- *  partner, and the "reunited!" celebration when you get close. */
-export function Compass({ sendGame }: { sendGame: (m: GameMsg) => void }) {
+type Guide = { heading: number; bearing: number; dist: number; label: string } | null;
+
+/** Directional guide + compass. Points to your objective — your partner in
+ *  Reunite, the nearest un-found landmark in Rush. The arrow/label show only
+ *  when the hint toggle is on; the compass ring (N) always shows. */
+export function Compass({ sendGame, spots }: { sendGame: (m: GameMsg) => void; spots: Spot[] }) {
   const mode = useGame((s) => s.mode);
   const reunited = useGame((s) => s.reunited);
+  const hint = useGame((s) => s.hint);
   const myId = useGame((s) => s.myId);
-  const [info, setInfo] = useState<{ dist: number; angle: number; name: string } | null>(null);
+  const [g, setG] = useState<Guide>(null);
 
   useEffect(() => {
-    if (mode !== 'reunite') return;
+    if (mode !== 'reunite' && mode !== 'rush') { setG(null); return; }
     const iv = setInterval(() => {
       const st = useGame.getState();
-      const others = Object.values(st.players);
-      if (!others.length) { setInfo(null); return; }
-      let best = others[0], bd = Infinity;
-      for (const p of others) {
-        const dx = p.x - localPos.x, dz = p.z - localPos.z;
-        const d = dx * dx + dz * dz;
-        if (d < bd) { bd = d; best = p; }
+      let tx: number | null = null, tz = 0, label = '', targetId = '';
+      if (mode === 'reunite') {
+        let bd = Infinity;
+        for (const p of Object.values(st.players)) {
+          const d = (p.x - localPos.x) ** 2 + (p.z - localPos.z) ** 2;
+          if (d < bd) { bd = d; tx = p.x; tz = p.z; label = p.name || 'Partner'; targetId = p.id; }
+        }
+      } else {
+        let bd = Infinity;
+        for (const s of spots) {
+          if (st.found[s.id]) continue;
+          const d = (s.x - localPos.x) ** 2 + (s.z - localPos.z) ** 2;
+          if (d < bd) { bd = d; tx = s.x; tz = s.z; label = s.name; }
+        }
       }
-      const dx = best.x - localPos.x, dz = best.z - localPos.z;
+      if (tx === null) { setG({ heading: localPos.ry, bearing: 0, dist: -1, label: '' }); return; }
+      const dx = tx - localPos.x, dz = tz - localPos.z;
       const dist = Math.hypot(dx, dz);
-      setInfo({ dist, angle: Math.atan2(dx, dz) - localPos.ry, name: best.name || 'Partner' });
-      if (dist < 8 && !st.reunited) sendGame({ action: 'reunited', a: myId, b: best.id });
+      setG({ heading: localPos.ry, bearing: Math.atan2(dx, dz), dist, label });
+      if (mode === 'reunite' && dist < 8 && !st.reunited) sendGame({ action: 'reunited', a: myId, b: targetId });
     }, 120);
     return () => clearInterval(iv);
-  }, [mode, myId, sendGame]);
+  }, [mode, spots, myId, sendGame]);
 
-  if (mode !== 'reunite') return null;
+  if (mode !== 'reunite' && mode !== 'rush') return null;
 
   if (reunited) {
     return (
@@ -50,17 +63,33 @@ export function Compass({ sendGame }: { sendGame: (m: GameMsg) => void }) {
     );
   }
 
-  if (!info) return <div className="compass"><p className="muted">Waiting for your partner to join room…</p></div>;
-  const warm = info.dist < 40 ? 'warm' : info.dist < 120 ? 'mid' : 'cold';
-  const hint = warm === 'warm' ? 'very warm 🔥' : warm === 'mid' ? 'getting closer' : 'cold ❄️';
+  const heading = g?.heading ?? 0;
+  const rel = g ? g.bearing - heading : 0;
+  const hasTarget = !!g && g.dist >= 0;
+  const warm = !hasTarget ? '' : g!.dist < 40 ? 'warm' : g!.dist < 120 ? 'mid' : 'cold';
+
   return (
     <div className="compass">
       <div className={`dial ${warm}`}>
-        <div className="arrow" style={{ transform: `rotate(${info.angle}rad)` }}>▲</div>
+        {/* rotating compass ring with North marker */}
+        <div className="ring" style={{ transform: `rotate(${Math.PI - heading}rad)` }}>
+          <span className="north">N</span>
+        </div>
+        {hint && hasTarget && (
+          <div className="arrow" style={{ transform: `rotate(${rel}rad)` }}>▲</div>
+        )}
       </div>
       <div className="cinfo">
-        <strong>{Math.round(info.dist)} m</strong>
-        <span>to {info.name} · {hint}</span>
+        {!hasTarget ? (
+          <span className="muted">{mode === 'reunite' ? 'Waiting for your partner…' : 'All landmarks found!'}</span>
+        ) : hint ? (
+          <>
+            <strong>{Math.round(g!.dist)} m</strong>
+            <span>to {g!.label} · {warm === 'warm' ? 'very warm 🔥' : warm === 'mid' ? 'getting closer' : 'far ❄️'}</span>
+          </>
+        ) : (
+          <span className="muted">Tap 🧭 for a hint</span>
+        )}
       </div>
     </div>
   );

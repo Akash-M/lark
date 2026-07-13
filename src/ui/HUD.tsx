@@ -45,7 +45,7 @@ export function HUD({ city, sendGame }: { city: City; sendGame: (m: GameMsg) => 
         <span className="muted">{count} here</span>
       </div>
 
-      <div className="hud top-right">
+      <div className="hud botright">
         <span className="modelabel">{mode === 'reunite' ? '💗 Reunite' : mode === 'rush' ? '🏁 Rush' : 'Free roam'}</span>
         <button className="mini" onClick={() => router.push('/')}>Leave</button>
       </div>

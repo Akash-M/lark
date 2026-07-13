@@ -11,6 +11,10 @@ export const randomCode = () =>
 const uuid = () =>
   (globalThis.crypto?.randomUUID?.() ?? Math.random().toString(36).slice(2) + Date.now().toString(36));
 
+const ZOOM_MIN = 8;
+const ZOOM_MAX = 40;
+const clampZoom = (z: number) => Math.max(ZOOM_MIN, Math.min(ZOOM_MAX, z));
+
 interface GameState {
   myId: string;
   name: string;
@@ -22,6 +26,9 @@ interface GameState {
   players: Record<string, Player>;
   input: { f: number; r: number };
 
+  zoom: number;
+  hint: boolean;
+
   mode: Mode;
   endsAt: number | null;
   seed: number;
@@ -31,6 +38,8 @@ interface GameState {
   configure: (p: { name: string; color: string; room: string; city: string }) => void;
   setConnected: (v: boolean) => void;
   setInput: (f: number, r: number) => void;
+  setZoom: (z: number) => void;
+  toggleHint: () => void;
   upsertPlayer: (p: Partial<Player> & { id: string }) => void;
   removeMissing: (ids: string[]) => void;
   applyGame: (m: GameMsg) => void;
@@ -48,6 +57,9 @@ export const useGame = create<GameState>((set) => ({
   players: {},
   input: { f: 0, r: 0 },
 
+  zoom: 16,
+  hint: true,
+
   mode: 'idle',
   endsAt: null,
   seed: 0,
@@ -57,6 +69,8 @@ export const useGame = create<GameState>((set) => ({
   configure: ({ name, color, room, city }) => set({ name, color, room, city }),
   setConnected: (v) => set({ connected: v }),
   setInput: (f, r) => set({ input: { f, r } }),
+  setZoom: (z) => set({ zoom: clampZoom(z) }),
+  toggleHint: () => set((s) => ({ hint: !s.hint })),
 
   upsertPlayer: (p) =>
     set((s) => {

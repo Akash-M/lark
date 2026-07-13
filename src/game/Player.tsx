@@ -7,9 +7,9 @@ import { localPos } from '@/lib/localState';
 import { Avatar } from './Avatar';
 import type { Collider } from './collision';
 
-/** Local player: joystick/keyboard movement with building collision + wall
- *  sliding, a follow camera that pulls in to avoid clipping walls, and a
- *  ~10Hz position broadcast to the room. */
+/** Local player: joystick/keyboard movement with collision + wall sliding, a
+ *  user-zoomable follow camera (wheel / pinch / buttons) that pulls in to avoid
+ *  clipping walls, and a ~10Hz position broadcast. */
 export function Player({
   sendPos,
   spawnAt,
@@ -43,16 +43,43 @@ export function Player({
     window.addEventListener('keyup', ku);
 
     const dom = gl.domElement;
-    let dragging = false, lastX = 0, pid = -1;
-    const pd = (e: PointerEvent) => { dragging = true; pid = e.pointerId; lastX = e.clientX; };
-    const pm = (e: PointerEvent) => {
-      if (dragging && e.pointerId === pid) { yaw.current -= (e.clientX - lastX) * 0.005; lastX = e.clientX; }
+    const pointers = new Map<number, { x: number; y: number }>();
+    let lastX = 0;
+    let lastPinch = 0;
+
+    const pd = (e: PointerEvent) => {
+      pointers.set(e.pointerId, { x: e.clientX, y: e.clientY });
+      if (pointers.size === 1) lastX = e.clientX;
     };
-    const pu = (e: PointerEvent) => { if (e.pointerId === pid) dragging = false; };
+    const pm = (e: PointerEvent) => {
+      if (!pointers.has(e.pointerId)) return;
+      pointers.set(e.pointerId, { x: e.clientX, y: e.clientY });
+      if (pointers.size === 1) {
+        yaw.current -= (e.clientX - lastX) * 0.005;
+        lastX = e.clientX;
+      } else {
+        const [a, b] = [...pointers.values()];
+        const d = Math.hypot(a.x - b.x, a.y - b.y);
+        if (lastPinch) useGame.getState().setZoom(useGame.getState().zoom - (d - lastPinch) * 0.05);
+        lastPinch = d;
+      }
+    };
+    const pu = (e: PointerEvent) => {
+      pointers.delete(e.pointerId);
+      lastPinch = 0;
+      const rest = [...pointers.values()][0];
+      if (rest) lastX = rest.x;
+    };
+    const wheel = (e: WheelEvent) => {
+      e.preventDefault();
+      useGame.getState().setZoom(useGame.getState().zoom + Math.sign(e.deltaY) * 1.5);
+    };
+
     dom.addEventListener('pointerdown', pd);
     dom.addEventListener('pointermove', pm);
     dom.addEventListener('pointerup', pu);
     dom.addEventListener('pointercancel', pu);
+    dom.addEventListener('wheel', wheel, { passive: false });
 
     return () => {
       window.removeEventListener('keydown', kd);
@@ -61,6 +88,7 @@ export function Player({
       dom.removeEventListener('pointermove', pm);
       dom.removeEventListener('pointerup', pu);
       dom.removeEventListener('pointercancel', pu);
+      dom.removeEventListener('wheel', wheel);
     };
   }, [gl]);
 
@@ -81,7 +109,8 @@ export function Player({
     r = Math.max(-1, Math.min(1, r));
 
     const fx = Math.sin(yaw.current), fz = Math.cos(yaw.current);
-    const rx = Math.sin(yaw.current + Math.PI / 2), rz = Math.cos(yaw.current + Math.PI / 2);
+    // right vector = forward rotated -90° (screen-right maps to world here)
+    const rx = Math.sin(yaw.current - Math.PI / 2), rz = Math.cos(yaw.current - Math.PI / 2);
     let mx = fx * f + rx * r, mz = fz * f + rz * r;
     const L = Math.hypot(mx, mz);
     if (L > 0.001) {
@@ -96,18 +125,19 @@ export function Player({
       g.rotation.y = Math.atan2(mx, mz);
     }
 
-    // follow camera, pulled in if it would sit inside a building
-    const hgt = 6.5;
-    let camDist = 11;
+    // user-controlled follow camera, pulled in if it would clip a building
+    const zoom = st.zoom;
+    const hgt = zoom * 0.62;
+    let camDist = zoom;
     if (col) {
       let guard = 0;
-      while (camDist > 3.5 && guard++ < 12 &&
+      while (camDist > 3.5 && guard++ < 16 &&
         col.blocked(g.position.x - fx * camDist, g.position.z - fz * camDist, 0.5)) {
         camDist -= 0.8;
       }
     }
     tmp.current.set(g.position.x - fx * camDist, hgt, g.position.z - fz * camDist);
-    camera.position.lerp(tmp.current, 1 - Math.pow(0.0015, dt));
+    camera.position.lerp(tmp.current, 1 - Math.pow(0.0016, dt));
     camera.lookAt(g.position.x, 2.2, g.position.z);
 
     localPos.x = g.position.x;

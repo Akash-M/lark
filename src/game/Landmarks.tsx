@@ -1,41 +1,23 @@
 'use client';
-import { useMemo, useRef } from 'react';
+import { useRef } from 'react';
 import { useFrame } from '@react-three/fiber';
 import * as THREE from 'three';
 import { useGame } from '@/lib/useGameStore';
 import { localPos } from '@/lib/localState';
-import type { City, GameMsg } from '@/lib/types';
-import type { Collider } from './collision';
+import type { GameMsg } from '@/lib/types';
 import { Label } from './label';
 
+export type Spot = { id: string; name: string; x: number; z: number };
 const COLLECT_RADIUS = 9;
 
-/** Glowing collectibles for Landmark Rush. Each marker is placed on open ground
- *  beside its building (via the collider) so it's always reachable now that
- *  players can't walk through walls. Auto-collects within range + broadcasts it. */
-export function Landmarks({
-  city,
-  sendGame,
-  collider,
-}: {
-  city: City;
-  sendGame: (m: GameMsg) => void;
-  collider: Collider | null;
-}) {
+/** Glowing collectibles for Landmark Rush, placed on reachable ground (spots
+ *  are precomputed in Game via the collider). Auto-collects within range. */
+export function Landmarks({ spots, sendGame }: { spots: Spot[]; sendGame: (m: GameMsg) => void }) {
   const mode = useGame((s) => s.mode);
   const name = useGame((s) => s.name);
   const found = useGame((s) => s.found);
   const groupRefs = useRef<Record<string, THREE.Group | null>>({});
   const orbRefs = useRef<Record<string, THREE.Mesh | null>>({});
-
-  const spots = useMemo(
-    () =>
-      city.landmarks.map((lm) => {
-        const [x, z] = collider ? collider.findOpen(lm.x, lm.z) : [lm.x, lm.z];
-        return { ...lm, x, z };
-      }),
-    [city, collider],
-  );
 
   useFrame((state) => {
     if (mode !== 'rush') return;
@@ -48,9 +30,8 @@ export function Landmarks({
       if (grp) grp.rotation.y = t * 0.6;
       if (!foundNow[s.id]) {
         const dx = localPos.x - s.x, dz = localPos.z - s.z;
-        if (dx * dx + dz * dz < COLLECT_RADIUS * COLLECT_RADIUS) {
+        if (dx * dx + dz * dz < COLLECT_RADIUS * COLLECT_RADIUS)
           sendGame({ action: 'found', landmarkId: s.id, by: name || 'A player' });
-        }
       }
     }
   });
