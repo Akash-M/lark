@@ -3,6 +3,9 @@ import { createClient, SupabaseClient } from '@supabase/supabase-js';
 
 let client: SupabaseClient | null = null;
 
+// NOTE: these NEXT_PUBLIC_* values are inlined at BUILD time. After adding or
+// changing them in Vercel, you must trigger a NEW build (redeploy) — an existing
+// deployment will not pick them up.
 const URL = process.env.NEXT_PUBLIC_SUPABASE_URL;
 const KEY = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
 
