@@ -2,6 +2,7 @@
 import { useEffect, useState } from 'react';
 import { useGame } from '@/lib/useGameStore';
 import type { City, GameMsg } from '@/lib/types';
+import { IconTrophy, IconClock } from './icons';
 
 const RUSH_SECONDS = 300;
 
@@ -37,7 +38,7 @@ export function HUD({ city, sendGame }: { city: City; sendGame: (m: GameMsg) => 
           <div className="found">{foundCount}/{total} found</div>
           <div className="chips">
             {city.landmarks.map((l) => (
-              <span key={l.id} className={`chip ${found[l.id] ? 'got' : ''}`}>{found[l.id] ? '✓ ' : ''}{l.name}</span>
+              <span key={l.id} className={`chip ${found[l.id] ? 'got' : ''}`}>{l.name}</span>
             ))}
           </div>
         </div>
@@ -45,7 +46,7 @@ export function HUD({ city, sendGame }: { city: City; sendGame: (m: GameMsg) => 
 
       {rushWon && (
         <div className="overlay"><div className="card big">
-          <div className="huge">🏆</div><h2>All landmarks found!</h2>
+          <div className="huge"><IconTrophy size={54} /></div><h2>All landmarks found!</h2>
           <p>{foundCount}/{total} with {mmss} to spare.</p>
           <div className="row">
             <button className="big-btn amber" onClick={startRush}>Play again</button>
@@ -56,7 +57,7 @@ export function HUD({ city, sendGame }: { city: City; sendGame: (m: GameMsg) => 
 
       {rushLost && (
         <div className="overlay"><div className="card big">
-          <div className="huge">⏰</div><h2>Time!</h2>
+          <div className="huge"><IconClock size={54} /></div><h2>Time!</h2>
           <p>You found {foundCount}/{total}. So close!</p>
           <div className="row">
             <button className="big-btn amber" onClick={startRush}>Try again</button>

@@ -4,6 +4,7 @@ import { useGame } from '@/lib/useGameStore';
 import { localPos } from '@/lib/localState';
 import type { GameMsg } from '@/lib/types';
 import type { Spot } from '@/game/Landmarks';
+import { IconNav, IconHeart } from './icons';
 
 type Guide = { rel: number; dist: number; label: string } | null;
 
@@ -53,7 +54,7 @@ export function Compass({ sendGame, spots }: { sendGame: (m: GameMsg) => void; s
     return (
       <div className="overlay">
         <div className="card big">
-          <div className="huge">💗</div>
+          <div className="huge"><IconHeart size={54} /></div>
           <h2>Reunited!</h2>
           <p>You found each other.</p>
           <div className="row">
@@ -78,7 +79,7 @@ export function Compass({ sendGame, spots }: { sendGame: (m: GameMsg) => void; s
   const warm = g.dist < 40 ? 'warm' : g.dist < 120 ? 'mid' : 'cold';
   return (
     <div className={`guide ${warm}`}>
-      <div className="guide-arrow" style={{ transform: `rotate(${g.rel}rad)` }}>↑</div>
+      <div className="guide-arrow" style={{ transform: `rotate(${g.rel}rad)` }}><IconNav size={22} /></div>
       <div className="guide-text">
         <strong>{Math.round(g.dist)} m</strong>
         <span>{g.label}</span>

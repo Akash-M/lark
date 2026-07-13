@@ -21,7 +21,7 @@ export default function Lobby() {
   return (
     <main className="lobby">
       <div className="lobby-card">
-        <h1>LARK <span>💙💗</span></h1>
+        <h1>Lark</h1>
         <p className="tag">Explore a 3D city together. Reunite, or race the clock to find landmarks.</p>
 
         <label>Your name</label>

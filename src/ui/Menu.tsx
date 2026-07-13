@@ -3,6 +3,7 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useGame } from '@/lib/useGameStore';
 import type { GameMsg, Mode } from '@/lib/types';
+import { IconHeart, IconFlag, IconCompass, IconMap, IconPlus, IconMinus, IconCopy, IconCheck, IconLogout } from './icons';
 
 const RUSH_SECONDS = 300;
 
@@ -14,8 +15,8 @@ function Switch({ on, onClick }: { on: boolean; onClick: () => void }) {
   );
 }
 
-/** The hub: everything lives here — room, mode selection, zoom, hint, minimap,
- *  leave. Opens automatically while idle so players see the mode choices. */
+/** The hub: room, mode selection, zoom, hint, minimap, leave. Opens
+ *  automatically while idle so players see the mode choices. */
 export function Menu({ sendGame }: { sendGame: (m: GameMsg) => void }) {
   const router = useRouter();
   const room = useGame((s) => s.room);
@@ -52,7 +53,10 @@ export function Menu({ sendGame }: { sendGame: (m: GameMsg) => void }) {
             <div className="menu-head">
               <div>
                 <div className="brand">Lark</div>
-                <button className="code" onClick={copy}>{room || '—'} <span className="copy">{copied ? 'copied ✓' : 'copy'}</span></button>
+                <button className="code" onClick={copy}>
+                  <span>{room || '—'}</span>
+                  {copied ? <IconCheck size={15} /> : <IconCopy size={15} />}
+                </button>
               </div>
               <span className="players"><span className={`dot ${connected ? 'on' : 'off'}`} />{count}</span>
             </div>
@@ -61,12 +65,12 @@ export function Menu({ sendGame }: { sendGame: (m: GameMsg) => void }) {
               <span className="menu-label">Play together</span>
               <div className="mode-cards">
                 <button className={`mode-card blue ${mode === 'reunite' ? 'active' : ''}`} onClick={() => pick('reunite')}>
-                  <span className="mc-emoji">💗</span>
+                  <span className="mc-icon"><IconHeart size={20} /></span>
                   <span className="mc-title">Reunite</span>
                   <span className="mc-sub">Find each other</span>
                 </button>
                 <button className={`mode-card amber ${mode === 'rush' ? 'active' : ''}`} onClick={() => pick('rush')}>
-                  <span className="mc-emoji">🏁</span>
+                  <span className="mc-icon"><IconFlag size={20} /></span>
                   <span className="mc-title">Landmark Rush</span>
                   <span className="mc-sub">Beat the clock</span>
                 </button>
@@ -78,21 +82,21 @@ export function Menu({ sendGame }: { sendGame: (m: GameMsg) => void }) {
               <div className="opt-row">
                 <span className="opt-name">Zoom</span>
                 <div className="stepper">
-                  <button onClick={() => zoomBy(3)} aria-label="Zoom out">－</button>
-                  <button onClick={() => zoomBy(-3)} aria-label="Zoom in">＋</button>
+                  <button onClick={() => zoomBy(3)} aria-label="Zoom out"><IconMinus size={18} /></button>
+                  <button onClick={() => zoomBy(-3)} aria-label="Zoom in"><IconPlus size={18} /></button>
                 </div>
               </div>
               <div className="opt-row">
-                <span className="opt-name">Direction hint</span>
+                <span className="opt-name"><IconCompass size={18} /> Direction hint</span>
                 <Switch on={hint} onClick={toggleHint} />
               </div>
               <div className="opt-row">
-                <span className="opt-name">Minimap</span>
+                <span className="opt-name"><IconMap size={18} /> Minimap</span>
                 <Switch on={showMinimap} onClick={toggleMinimap} />
               </div>
             </div>
 
-            <button className="leave-btn" onClick={() => router.push('/')}>Leave game</button>
+            <button className="leave-btn" onClick={() => router.push('/')}><IconLogout size={18} /> Leave game</button>
           </div>
         </>
       )}
