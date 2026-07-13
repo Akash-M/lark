@@ -28,6 +28,7 @@ interface GameState {
 
   zoom: number;
   hint: boolean;
+  showMinimap: boolean;
 
   mode: Mode;
   endsAt: number | null;
@@ -40,6 +41,7 @@ interface GameState {
   setInput: (f: number, r: number) => void;
   setZoom: (z: number) => void;
   toggleHint: () => void;
+  toggleMinimap: () => void;
   upsertPlayer: (p: Partial<Player> & { id: string }) => void;
   removeMissing: (ids: string[]) => void;
   applyGame: (m: GameMsg) => void;
@@ -59,6 +61,7 @@ export const useGame = create<GameState>((set) => ({
 
   zoom: 16,
   hint: true,
+  showMinimap: true,
 
   mode: 'idle',
   endsAt: null,
@@ -71,6 +74,7 @@ export const useGame = create<GameState>((set) => ({
   setInput: (f, r) => set({ input: { f, r } }),
   setZoom: (z) => set({ zoom: clampZoom(z) }),
   toggleHint: () => set((s) => ({ hint: !s.hint })),
+  toggleMinimap: () => set((s) => ({ showMinimap: !s.showMinimap })),
 
   upsertPlayer: (p) =>
     set((s) => {

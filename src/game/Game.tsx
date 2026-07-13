@@ -25,6 +25,7 @@ export default function Game() {
   const cityId = useGame((s) => s.city);
   const mode = useGame((s) => s.mode);
   const seed = useGame((s) => s.seed);
+  const showMinimap = useGame((s) => s.showMinimap);
   const { sendPos, sendGame } = useRoom();
   const [city, setCity] = useState<City | null>(null);
   const [spawnAt, setSpawnAt] = useState({ x: 0, z: 20 });
@@ -97,7 +98,7 @@ export default function Game() {
       {!city && <div className="loader">Loading {cityId}…</div>}
       <Joystick />
       <Menu sendGame={sendGame} />
-      {city && <Minimap city={city} spots={spots} />}
+      {city && showMinimap && <Minimap city={city} spots={spots} />}
       {city && <HUD city={city} sendGame={sendGame} />}
       <Compass sendGame={sendGame} spots={spots} />
     </div>

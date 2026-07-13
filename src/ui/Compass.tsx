@@ -5,17 +5,18 @@ import { localPos } from '@/lib/localState';
 import type { GameMsg } from '@/lib/types';
 import type { Spot } from '@/game/Landmarks';
 
-type Guide = { heading: number; bearing: number; dist: number; label: string } | null;
+type Guide = { rel: number; dist: number; label: string } | null;
 
-/** Directional guide + compass. Points to your objective — your partner in
- *  Reunite, the nearest un-found landmark in Rush. The arrow/label show only
- *  when the hint toggle is on; the compass ring (N) always shows. */
+/** Direction + distance guide (on by default). A clean chip that points, in
+ *  the direction you're facing, toward your objective — your partner in
+ *  Reunite, the nearest un-found landmark in Rush. */
 export function Compass({ sendGame, spots }: { sendGame: (m: GameMsg) => void; spots: Spot[] }) {
   const mode = useGame((s) => s.mode);
   const reunited = useGame((s) => s.reunited);
   const hint = useGame((s) => s.hint);
   const myId = useGame((s) => s.myId);
   const [g, setG] = useState<Guide>(null);
+  const [empty, setEmpty] = useState(false);
 
   useEffect(() => {
     if (mode !== 'reunite' && mode !== 'rush') { setG(null); return; }
@@ -36,12 +37,13 @@ export function Compass({ sendGame, spots }: { sendGame: (m: GameMsg) => void; s
           if (d < bd) { bd = d; tx = s.x; tz = s.z; label = s.name; }
         }
       }
-      if (tx === null) { setG({ heading: localPos.ry, bearing: 0, dist: -1, label: '' }); return; }
+      if (tx === null) { setEmpty(true); setG(null); return; }
+      setEmpty(false);
       const dx = tx - localPos.x, dz = tz - localPos.z;
       const dist = Math.hypot(dx, dz);
-      setG({ heading: localPos.ry, bearing: Math.atan2(dx, dz), dist, label });
+      setG({ rel: Math.atan2(dx, dz) - localPos.ry, dist, label });
       if (mode === 'reunite' && dist < 8 && !st.reunited) sendGame({ action: 'reunited', a: myId, b: targetId });
-    }, 120);
+    }, 110);
     return () => clearInterval(iv);
   }, [mode, spots, myId, sendGame]);
 
@@ -56,40 +58,30 @@ export function Compass({ sendGame, spots }: { sendGame: (m: GameMsg) => void; s
           <p>You found each other.</p>
           <div className="row">
             <button className="big-btn blue" onClick={() => sendGame({ action: 'start', mode: 'reunite', endsAt: null, seed: Math.random() })}>Again</button>
-            <button className="big-btn ghost" onClick={() => sendGame({ action: 'start', mode: 'idle', endsAt: null, seed: 0 })}>Modes</button>
+            <button className="big-btn ghost" onClick={() => sendGame({ action: 'start', mode: 'idle', endsAt: null, seed: 0 })}>Menu</button>
           </div>
         </div>
       </div>
     );
   }
 
-  const heading = g?.heading ?? 0;
-  const rel = g ? g.bearing - heading : 0;
-  const hasTarget = !!g && g.dist >= 0;
-  const warm = !hasTarget ? '' : g!.dist < 40 ? 'warm' : g!.dist < 120 ? 'mid' : 'cold';
+  if (!hint) return null; // guide toggled off in the menu
 
-  return (
-    <div className="compass">
-      <div className={`dial ${warm}`}>
-        {/* rotating compass ring with North marker */}
-        <div className="ring" style={{ transform: `rotate(${Math.PI - heading}rad)` }}>
-          <span className="north">N</span>
-        </div>
-        {hint && hasTarget && (
-          <div className="arrow" style={{ transform: `rotate(${rel}rad)` }}>▲</div>
-        )}
+  if (empty || !g) {
+    return (
+      <div className="guide muted-guide">
+        {mode === 'reunite' ? 'Waiting for your partner…' : 'All landmarks found! 🎉'}
       </div>
-      <div className="cinfo">
-        {!hasTarget ? (
-          <span className="muted">{mode === 'reunite' ? 'Waiting for your partner…' : 'All landmarks found!'}</span>
-        ) : hint ? (
-          <>
-            <strong>{Math.round(g!.dist)} m</strong>
-            <span>to {g!.label} · {warm === 'warm' ? 'very warm 🔥' : warm === 'mid' ? 'getting closer' : 'far ❄️'}</span>
-          </>
-        ) : (
-          <span className="muted">Tap 🧭 for a hint</span>
-        )}
+    );
+  }
+
+  const warm = g.dist < 40 ? 'warm' : g.dist < 120 ? 'mid' : 'cold';
+  return (
+    <div className={`guide ${warm}`}>
+      <div className="guide-arrow" style={{ transform: `rotate(${g.rel}rad)` }}>↑</div>
+      <div className="guide-text">
+        <strong>{Math.round(g.dist)} m</strong>
+        <span>{g.label}</span>
       </div>
     </div>
   );
