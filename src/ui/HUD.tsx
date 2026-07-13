@@ -1,29 +1,25 @@
 'use client';
 import { useEffect, useState } from 'react';
-import { useRouter } from 'next/navigation';
 import { useGame } from '@/lib/useGameStore';
 import { hasSupabase } from '@/lib/supabase';
 import type { City, GameMsg } from '@/lib/types';
 
 const RUSH_SECONDS = 300;
 
+/** Gameplay HUD: Rush timer + checklist, the mode-select panel (idle), and
+ *  win/lose overlays. Room/zoom/hint/leave now live in the burger Menu. */
 export function HUD({ city, sendGame }: { city: City; sendGame: (m: GameMsg) => void }) {
-  const router = useRouter();
   const room = useGame((s) => s.room);
-  const connected = useGame((s) => s.connected);
   const mode = useGame((s) => s.mode);
   const endsAt = useGame((s) => s.endsAt);
   const found = useGame((s) => s.found);
-  const players = useGame((s) => s.players);
   const [now, setNow] = useState(Date.now());
-  const [copied, setCopied] = useState(false);
 
   useEffect(() => {
     const iv = setInterval(() => setNow(Date.now()), 250);
     return () => clearInterval(iv);
   }, []);
 
-  const count = Object.keys(players).length + 1;
   const foundCount = Object.keys(found).length;
   const total = city.landmarks.length;
   const remaining = endsAt ? Math.max(0, Math.ceil((endsAt - now) / 1000)) : 0;
@@ -32,24 +28,12 @@ export function HUD({ city, sendGame }: { city: City; sendGame: (m: GameMsg) => 
   const startReunite = () => sendGame({ action: 'start', mode: 'reunite', endsAt: null, seed: Math.random() });
   const startRush = () => sendGame({ action: 'start', mode: 'rush', endsAt: Date.now() + RUSH_SECONDS * 1000, seed: Math.random() });
   const toModes = () => sendGame({ action: 'start', mode: 'idle', endsAt: null, seed: 0 });
-  const copy = () => { navigator.clipboard?.writeText(room); setCopied(true); setTimeout(() => setCopied(false), 1200); };
 
   const rushWon = mode === 'rush' && total > 0 && foundCount >= total;
   const rushLost = mode === 'rush' && remaining <= 0 && foundCount < total;
 
   return (
     <>
-      <div className="hud top-left">
-        <button className="code" onClick={copy}>{room || '—'} {copied ? '✓' : '⧉'}</button>
-        <span className={`dot ${connected ? 'on' : 'off'}`} />
-        <span className="muted">{count} here</span>
-      </div>
-
-      <div className="hud botright">
-        <span className="modelabel">{mode === 'reunite' ? '💗 Reunite' : mode === 'rush' ? '🏁 Rush' : 'Free roam'}</span>
-        <button className="mini" onClick={() => router.push('/')}>Leave</button>
-      </div>
-
       {mode === 'rush' && (
         <div className="hud rush-bar">
           <div className={`timer ${remaining < 30 ? 'danger' : ''}`}>{mmss}</div>

@@ -17,7 +17,7 @@ import { Joystick } from '@/ui/Joystick';
 import { HUD } from '@/ui/HUD';
 import { Compass } from '@/ui/Compass';
 import { Minimap } from '@/ui/Minimap';
-import { Controls } from '@/ui/Controls';
+import { Menu } from '@/ui/Menu';
 
 export default function Game() {
   const router = useRouter();
@@ -96,7 +96,7 @@ export default function Game() {
 
       {!city && <div className="loader">Loading {cityId}…</div>}
       <Joystick />
-      <Controls />
+      <Menu sendGame={sendGame} />
       {city && <Minimap city={city} spots={spots} />}
       {city && <HUD city={city} sendGame={sendGame} />}
       <Compass sendGame={sendGame} spots={spots} />

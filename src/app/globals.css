@@ -126,3 +126,20 @@ canvas { display: block; touch-action: none; }
   background: var(--panel); backdrop-filter: blur(8px); font-size: 20px; font-weight: 700; color: var(--ink);
   box-shadow: 0 6px 18px rgba(20,40,60,.16); }
 .controls button.on { background: var(--blue); color: #fff; }
+
+/* burger menu (consolidated controls) */
+.burger { position: fixed; top: 12px; left: 12px; width: 46px; height: 46px; border-radius: 12px;
+  border: 1px solid rgba(255,255,255,.6); background: var(--panel); backdrop-filter: blur(8px);
+  font-size: 20px; font-weight: 700; color: var(--ink); z-index: 40; box-shadow: 0 6px 18px rgba(20,40,60,.16); }
+.menu-backdrop { position: fixed; inset: 0; z-index: 39; }
+.menu-panel { position: fixed; top: 66px; left: 12px; width: 252px; z-index: 40; padding: 12px;
+  background: var(--panel); backdrop-filter: blur(10px); border-radius: 16px; box-shadow: 0 12px 34px rgba(20,40,60,.24);
+  display: flex; flex-direction: column; gap: 12px; }
+.menu-row { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.menu-sec { display: flex; flex-direction: column; gap: 6px; border-top: 1px solid rgba(60,90,110,.14); padding-top: 10px; }
+.menu-label { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: .4px; opacity: .55; }
+.mbtn { border: 1px solid rgba(255,255,255,.6); background: rgba(60,90,110,.1); color: var(--ink);
+  border-radius: 10px; padding: 9px 12px; font-size: 14px; font-weight: 600; cursor: pointer; }
+.mbtn.wideish { flex: 1; }
+.mbtn.on { background: var(--blue); color: #fff; }
+.mbtn.danger { background: rgba(208,80,80,.14); color: #b23120; }
