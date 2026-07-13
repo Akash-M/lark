@@ -35,7 +35,7 @@ Without Supabase keys it still runs as a **single‑player preview** so you can 
 These modes use **Supabase Realtime only** — Broadcast (live positions + game events) and Presence (who's in the room). **No database tables, no auth, no RLS policies to set up.**
 
 1. Create a free project at https://app.supabase.com.
-2. **Project Settings → API** → copy the **Project URL** and the **anon public** key.
+2. **Project Settings → API Keys** → copy the **Project URL** and the **publishable key** (`sb_publishable_...`). That's the current name for the old **anon** key — the low‑privilege, browser‑safe one. (Never use the **secret key** `sb_secret_...` — that's server‑only and bypasses security.)
 3. Local: put them in `.env.local`:
    ```
    NEXT_PUBLIC_SUPABASE_URL=https://YOUR-PROJECT.supabase.co
@@ -43,7 +43,9 @@ These modes use **Supabase Realtime only** — Broadcast (live positions + game 
    ```
 4. Vercel: **Project → Settings → Environment Variables** → add the same two vars to the **Production** (and Preview) environments → **redeploy** (they're baked in at build time).
 
-That's it — both players enter the **same room code** and they're synced. The anon key is safe to expose; it's designed for browser use, and these public channels need nothing more.
+> The env var is still named `NEXT_PUBLIC_SUPABASE_ANON_KEY` for continuity — it's just a variable name, so paste the publishable key into it and everything works (the legacy `anon` key still works too during the transition).
+
+That's it — both players enter the **same room code** and they're synced. The publishable (anon) key is safe to expose; it's designed for browser use, and these public channels need nothing more.
 
 ## Deploy on Vercel (native)
 
