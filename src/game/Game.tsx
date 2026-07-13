@@ -1,5 +1,5 @@
 'use client';
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Canvas } from '@react-three/fiber';
 import * as THREE from 'three';
@@ -12,6 +12,7 @@ import { CityView } from './City';
 import { Player } from './Player';
 import { RemotePlayers } from './RemotePlayers';
 import { Landmarks } from './Landmarks';
+import { Collider } from './collision';
 import { Joystick } from '@/ui/Joystick';
 import { HUD } from '@/ui/HUD';
 import { Compass } from '@/ui/Compass';
@@ -26,6 +27,8 @@ export default function Game() {
   const [city, setCity] = useState<City | null>(null);
   const [spawnAt, setSpawnAt] = useState({ x: 0, z: 20 });
 
+  const collider = useMemo(() => (city ? new Collider(city) : null), [city]);
+
   useEffect(() => { if (!name) router.replace('/'); }, [name, router]);
 
   useEffect(() => {
@@ -35,10 +38,16 @@ export default function Game() {
   }, [cityId]);
 
   useEffect(() => {
-    if (mode === 'reunite') setSpawnAt(spawn(160));
-    else if (mode === 'rush') setSpawnAt(spawn(30, 0, 30));
-    else setSpawnAt({ x: 0, z: 20 });
-  }, [mode, seed]);
+    let base: { x: number; z: number };
+    if (mode === 'reunite') base = spawn(160);
+    else if (mode === 'rush') base = spawn(30, 0, 30);
+    else base = { x: 0, z: 20 };
+    if (collider) {
+      const [x, z] = collider.findOpen(base.x, base.z);
+      base = { x, z };
+    }
+    setSpawnAt(base);
+  }, [mode, seed, collider]);
 
   if (!name) return null;
 
@@ -72,9 +81,9 @@ export default function Game() {
           shadow-bias={-0.0004}
         />
         {city && <CityView city={city} />}
-        <Player sendPos={sendPos} spawnAt={spawnAt} />
+        <Player sendPos={sendPos} spawnAt={spawnAt} collider={collider} />
         <RemotePlayers />
-        {city && <Landmarks city={city} sendGame={sendGame} />}
+        {city && <Landmarks city={city} sendGame={sendGame} collider={collider} />}
       </Canvas>
 
       {!city && <div className="loader">Loading {cityId}…</div>}
