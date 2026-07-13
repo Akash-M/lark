@@ -9,7 +9,7 @@
   --green: #7cc79b;
   --grad: linear-gradient(135deg, #6aa6d6 0%, #e58fb2 100%);
   --shadow: 0 6px 20px rgba(40, 80, 120, 0.13);
-  --radius: 13px;
+  --radius: 2px;
 }
 * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
 html, body { height: 100%; overflow: hidden; background: #dbe8f2; color: var(--ink);
@@ -166,3 +166,13 @@ svg { display: block; }
 .card.big h2 { font-size: 25px; font-weight: 800; margin: 6px 0; letter-spacing: -0.3px; }
 .card.big p { color: var(--sub); font-size: 14px; margin-bottom: 18px; }
 .card.big .row { justify-content: center; }
+
+/* sharp corners: ~2px radius on rectangular surfaces (circular elements —
+   switches, dots, joystick, icon badges, colour swatches — stay round) */
+.big-btn,
+.lobby-card, .lobby-card input,
+.menu-panel, .code,
+.mode-card, .mode-card.blue.active, .mode-card.amber.active,
+.stepper button, .leave-btn,
+.guide, .rush-bar, .minimap, .chip,
+.card.big { border-radius: 2px; }
