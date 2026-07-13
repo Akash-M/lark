@@ -1,13 +1,14 @@
 /** @type {import('next').NextConfig} */
 
-// When deploying to a GitHub Pages *project* site the app is served from
-// https://<user>.github.io/<repo>/ , so it needs a base path. The deploy
-// workflow injects NEXT_PUBLIC_BASE_PATH (e.g. "/lark"). Locally it's
-// empty, so the app runs at the root.
+// Deploy targets:
+//  - Vercel (default): builds Next natively and serves at the domain root.
+//  - GitHub Pages: set STATIC_EXPORT=1 and NEXT_PUBLIC_BASE_PATH=/<repo> to emit
+//    a static ./out served from https://<user>.github.io/<repo>/.
 const basePath = process.env.NEXT_PUBLIC_BASE_PATH || '';
+const staticExport = process.env.STATIC_EXPORT === '1' || process.env.STATIC_EXPORT === 'true';
 
 const nextConfig = {
-  output: 'export', // fully static site -> hostable on GitHub Pages
+  ...(staticExport ? { output: 'export' } : {}),
   reactStrictMode: false,
   transpilePackages: ['three'],
   eslint: { ignoreDuringBuilds: true },
